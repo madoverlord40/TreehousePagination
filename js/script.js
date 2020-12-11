@@ -26,6 +26,8 @@ let paginationOnce = false;
 //keep track if we are searching for a student name
 let isSearching = false;
 
+let searchResultTextContent = null;
+
 //helper function to create new elements
 function createNewElement(elementType, className, text, attribute, attributeValue, parentElement) {
    if(elementType != null) {
@@ -57,35 +59,34 @@ function createNewElement(elementType, className, text, attribute, attributeValu
 
 function buildSearchBox() {     
       
-   const labelElement = document.createElement("LABEL");
-   labelElement.setAttribute("for", "search");
-   labelElement.className = "student-search";
+   let page = document.querySelector(".page");
+   let header = document.querySelector(".header");
 
-   const inputElement = document.createElement("INPUT");
-   inputElement.setAttribute("id", "search");
+   let searchLabelElement = createNewElement("LABEL", "student-search", null,"for", "search", header);
+
+   let inputElement = createNewElement("INPUT", null, null, "id", "search", searchLabelElement);
    inputElement.setAttribute("placeholder", "Search by name...");
 
-   const searchButton = document.createElement("BUTTON");
-   const searchBtnImg = document.createElement("IMG");
-   searchBtnImg.setAttribute("src", "img/icn-search.svg");
+   let searchButton = createNewElement("BUTTON", null, null, null, null, searchLabelElement );
+   let searchBtnImg = createNewElement("IMG", null, null, "src", "img/icn-search.svg", searchButton);
    searchBtnImg.setAttribute("alt", "Search icon");
-   searchButton.appendChild(searchBtnImg);
+
+   let searchResultText = createNewElement("TEXT", null, "", "id", "text", searchLabelElement);
+   searchResultTextContent = searchResultText;
 
    //click handler
-   labelElement.onclick = (eventObject) => {
+   searchLabelElement.onclick = (eventObject) => {
       searchButtonElementEventHandler(eventObject, this);
    }
 
    //key up handler
-   labelElement.onkeyup  = () => {
+   searchLabelElement.onkeyup  = () => {
       processNameSearch();
    }
 
-   labelElement.appendChild(inputElement);
-   labelElement.appendChild(searchButton);
-
-   document.querySelector("h2").appendChild(labelElement);
-      
+   //labelElement.appendChild(inputElement);
+   //labelElement.appendChild(searchButton);
+    
 }
 //END EXCEEDS
 
@@ -139,12 +140,13 @@ function buildListItems(list, start, end) {
 //private search method for searching for names from the search box
 //called from SearchButtonKeyUpHandler and SearchButtonElementEventHandler
 function searchFor(searchName) {
+   //track how many were found
+   let foundCount = 0;
+
    if(typeof(searchName) === "string" && searchName.length > 0) {
       //declare new array
       searchStudentList = [];
-      //track how many were found
-      let foundCount = 0;
-
+      
       for(var index = 0; index < studentList.length; index++) {
          //get the last name string from the index in list, force the name to lowercase for easy searching
          let name = studentList[index].name.last.toLowerCase();
@@ -155,11 +157,9 @@ function searchFor(searchName) {
             foundCount++;
          }
       }
-
-      return (foundCount > 0);
    }
 
-   return false;
+   return foundCount;
 }
 
    //function to process the name search box, made public for testing
@@ -173,16 +173,20 @@ function processNameSearch() {
       if(userText.length > 0) {
         const result = searchFor(userText);
          //finally, show the new list
-         if(result === true) {
+         if(result > 0) {
             isSearching = true;
-            showPage(1);
+            searchResultTextContent.textContent = `Found ${result} results!`;
          }
          else {
             isSearching = false;
+            searchResultTextContent.textContent = "No Search Found";
          }
+
+         showPage(1);
 
       }
       else{
+
          //reset the search array
          searchStudentList = [];
          //set that we are not searching anymore
@@ -191,6 +195,8 @@ function processNameSearch() {
          paginationOnce = false;
          //show the normal page 
          showPage(1);
+
+         searchResultTextContent.textContent = "Search Reset";
 
          console.log("No Names found!");
       }
@@ -256,12 +262,14 @@ function showPage(page) {
 
       if(result) {
          //make sure we only call the addPagination once
-         if(paginationOnce == false) {
+         if(paginationOnce == false || isSearching) {
             addPagination(newList);
          }
       } else {
          console.log("Failed to create list items.");
       }
+      //now that we have shown the search results page, set this to false or it will mess with paging.
+      isSearching = false;
    }
 }
 
