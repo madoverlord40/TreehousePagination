@@ -13,10 +13,13 @@ For assistance:
 
 //global constants
 const maxDisplayItems = 9;
+//max pages constant used in computing the maximum pages we can have
 const maxPage = Math.ceil(data.length / maxDisplayItems) + 1;
+//store the student list html element, updated  when buildListElements is called
 var studentListHTML = '';
 //locally store the list in data.js for better naming
 const studentList = data;
+//store a search result list, array starts empty.
 let searchStudentList = [];
 
 // keep track of the last page changing button clicked
@@ -25,7 +28,7 @@ var lastClickedButton = null;
 let paginationOnce = false;
 //keep track if we are searching for a student name
 let isSearching = false;
-
+//store the search result element so we cant update its content
 let searchResultTextContent = null;
 
 //helper function to create new elements
@@ -83,9 +86,6 @@ function buildSearchBox() {
    searchLabelElement.onkeyup  = () => {
       processNameSearch();
    }
-
-   //labelElement.appendChild(inputElement);
-   //labelElement.appendChild(searchButton);
     
 }
 //END EXCEEDS
@@ -195,7 +195,7 @@ function processNameSearch() {
          paginationOnce = false;
          //show the normal page 
          showPage(1);
-
+         //notify user the search box is empty and the search was reset to full page
          searchResultTextContent.textContent = "Search Reset";
 
          console.log("No Names found!");
@@ -208,7 +208,7 @@ function processNameSearch() {
 
 //Event handler for the search button
 //@Param eventObject, the event object passed down from the framework
-function searchButtonElementEventHandler(eventObject, self) {
+function searchButtonElementEventHandler(eventObject) {
    if(eventObject != null && eventObject.target != null) {
       let selectedItem = eventObject.target;
       //sometimes it comes up as the img being clicked so lets respond to that as well, otherwise the user has to click outside the img to hit the button.
@@ -242,7 +242,6 @@ function buttonItemEventHandler(eventObject) {
 Create the `showPage` function
 This function will create and insert/append the elements needed to display a "page" of nine students
 @Param page: the current page we are show, if items are greater than 9
-@Param filtering: boolean flagged if we are searching
 */
 function showPage(page) {
    //lets make sure we get valid data before processing
@@ -276,6 +275,7 @@ function showPage(page) {
 /*
 Create the `addPagination` function
 This function will create and insert/append the elements needed for the pagination buttons
+@Param list: the array to use when computing the paging buttons, how many
 */
 function addPagination(list) {
 
