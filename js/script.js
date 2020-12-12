@@ -24,8 +24,6 @@ let searchStudentList = [];
 
 // keep track of the last page changing button clicked
 var lastClickedButton = null;
-// flag for if pagination has run or not, to prevent duplicate buttons being created
-let paginationOnce = false;
 //keep track if we are searching for a student name
 let isSearching = false;
 //store the search result element so we cant update its content
@@ -87,6 +85,25 @@ function buildSearchBox() {
       processNameSearch();
    }
     
+}
+
+function showNoSearchResults() {
+
+   studentListHTML = document.querySelector('.student-list'); 
+   // set the innerHTML property of the variable you just created to an empty string
+   studentListHTML.innerHTML = '';
+
+    //the outer list element item
+    let studentItem = createNewElement('LI', "student-item cf", null, null, null, null);
+
+    //the div element
+    let divElement = createNewElement('DIV', "student-details", null, null, null, studentItem);
+
+    //the H3 element and context set
+    let h3Element = createNewElement('H3', null, "No Matching students found!", null, null, divElement);
+
+    //insert above elements into the HTML
+    studentListHTML.appendChild(studentItem);
 }
 //END EXCEEDS
 
@@ -168,35 +185,32 @@ function processNameSearch() {
       
    if(textField != null) {
       const userText = textField.value.toLowerCase();
-      
+      //flag that we are searching
+      isSearching = true;
+
       //lets make sure we have a valid string
       if(userText.length > 0) {
         const result = searchFor(userText);
          //finally, show the new list
-         if(result > 0) {
-            isSearching = true;
-            searchResultTextContent.textContent = `Found ${result} results!`;
-         }
-         else {
-            isSearching = false;
-            searchResultTextContent.textContent = "No Search Found";
-         }
-
          showPage(1);
+         addPagination(searchStudentList);
 
+         //if we have no results, show that as the only list item on the screen
+         if(result === 0) {            
+            showNoSearchResults();
+         }
       }
-      else{
+      else {
 
          //reset the search array
-         searchStudentList = [];
+         searchStudentList = studentList;
          //set that we are not searching anymore
          isSearching = false;
          //reset pagination so we get the normal button list
          paginationOnce = false;
-         //show the normal page 
+         //show the page 
          showPage(1);
-         //notify user the search box is empty and the search was reset to full page
-         searchResultTextContent.textContent = "Search Reset";
+         addPagination(searchStudentList);
 
          console.log("No Names found!");
       }
@@ -250,25 +264,15 @@ function showPage(page) {
       let startIndex = ((page * maxDisplayItems) - maxDisplayItems);
       let endIndex = (page * maxDisplayItems);
 
-      let newList = studentList;
+      //update the page with the search list if we are searching
+      let newList = (isSearching ? searchStudentList : studentList);
 
-      if(isSearching) {
-         newList = searchStudentList;
-      }
-      
       //call the build items function
       let result = buildListItems(newList, startIndex, endIndex);
 
-      if(result) {
-         //make sure we only call the addPagination once
-         if(paginationOnce == false || isSearching) {
-            addPagination(newList);
-         }
-      } else {
+      if(result === false) {
          console.log("Failed to create list items.");
       }
-      //now that we have shown the search results page, set this to false or it will mess with paging.
-      isSearching = false;
    }
 }
 
@@ -317,9 +321,6 @@ function addPagination(list) {
          buttonItemEventHandler(eventObject);
       }
 
-      //we dont want to change the page buttons again unless we are searching
-      paginationOnce = true;
-
    } else {
       console.log("Pagination failed: the list parameter is null!");
    }
@@ -329,3 +330,4 @@ function addPagination(list) {
 // Call functions
 buildSearchBox();
 showPage(1);
+addPagination(studentList);
